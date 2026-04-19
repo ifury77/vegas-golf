@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NSRCC Vegas</title>
+<link rel="icon" href="https://raw.githubusercontent.com/ifury77/vegas-golf/main/Logo.png">
+<meta name="apple-mobile-web-app-title" content="NSRCC Vegas">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f4f7f4;color:#1a1a1a;min-height:100vh}
+.app{max-width:700px;margin:0 auto;padding:1rem}
+.screen{display:none}
+.screen.active{display:block}
+.top-bar{background:#1a5e2a;color:#fff;padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;border-radius:10px}
+.top-bar h1{font-size:16px;font-weight:600}
+.top-nav{display:flex;gap:6px}
+.top-nav button{background:rgba(255,255,255,0.15);border:none;color:#fff;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer}
+.top-nav button:hover{background:rgba(255,255,255,0.25)}
+h2{font-size:17px;font-weight:600;margin-bottom:.75rem;color:#1a1a1a}
+h3{font-size:14px;font-weight:600;margin-bottom:.5rem;color:#1a1a1a}
+.card{background:#fff;border:1px solid #e0e7e0;border-radius:10px;padding:1rem 1.25rem;margin-bottom:.75rem}
+label{font-size:12px;color:#555;display:block;margin-bottom:3px}
+input[type=text],input[type=number]{width:100%;padding:7px 10px;border:1px solid #d0d8d0;border-radius:6px;font-size:14px;background:#fff;color:#1a1a1a;margin-bottom:.5rem}
+input:focus{outline:none;border-color:#1a5e2a}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.btn{cursor:pointer;padding:8px 16px;border-radius:8px;border:1px solid #ccc;background:#fff;color:#1a1a1a;font-size:14px;font-weight:500}
+.btn:hover{background:#f0f0f0}
+.btn-primary{background:#1a5e2a;border-color:#1a5e2a;color:#fff}
+.btn-primary:hover{background:#144d22}
+.btn-sm{padding:5px 12px;font-size:12px}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600}
+.tag-a{background:#dbeafe;color:#1e40af}
+.tag-b{background:#fef9c3;color:#854d0e}
+.score-input{width:50px;padding:5px;text-align:center;font-size:15px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#1a1a1a}
+.score-input:focus{outline:none;border-color:#1a5e2a}
+.pair-btn{padding:6px 12px;font-size:13px;border-radius:8px;border:1px solid #ccc;cursor:pointer;background:#fff;color:#1a1a1a;margin:0 6px 6px 0}
+.pair-btn.selected{background:#1a5e2a;color:#fff;border-color:#1a5e2a}
+.hole-nav{display:flex;align-items:center;gap:8px;margin-bottom:1rem}
+.hole-nav span{font-size:15px;font-weight:600;min-width:90px;text-align:center}
+.vegas-num{font-size:20px;font-weight:700}
+.team-a-color{color:#1e40af}
+.team-b-color{color:#854d0e}
+.section-title{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:600}
+.payout-box{background:#1a5e2a;border-radius:10px;padding:1.25rem;text-align:center;color:#fff;margin-bottom:1rem}
+.payout-box .amount{font-size:38px;font-weight:700}
+.payout-box .sublabel{font-size:12px;opacity:.8;margin-top:4px}
+.summary-table{width:100%;border-collapse:collapse;font-size:12px}
+.summary-table th{text-align:left;padding:6px 6px;border-bottom:2px solid #e0e7e0;font-weight:600;color:#555;font-size:11px}
+.summary-table td{padding:5px 6px;border-bottom:1px solid #f0f4f0}
+.summary-table tfoot td{font-weight:700;border-top:2px solid #e0e7e0;padding-top:8px}
+.win-label{font-weight:600;color:#166534}
+.tie-label{color:#888}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top-bar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <img src="https://raw.githubusercontent.com/ifury77/vegas-golf/main/Logo.png" id="app-logo" style="width:38px;height:38px;object-fit:contain;border-radius:6px;background:#fff;padding:2px">
+      <h1 id="screen-title">NSRCC Vegas</h1>
+    </div>
+    <div class="top-nav" id="top-nav" style="display:none">
+      <button onclick="goSetup()">Setup</button>
+      <button onclick="goScoring()">Scorecard</button>
+      <button onclick="goSummary()">Summary</button>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="screen active" id="screen-setup">
+    <div class="card">
+      <h3>Players & Handicaps</h3>
+      <p style="font-size:12px;color:#666;margin-bottom:.75rem">Add handicap index only if the player needs strokes.</p>
+      <div id="player-inputs"></div>
+    </div>
+    <div class="card">
+      <h3>Hole 1 Pairing <span style="font-size:12px;color:#888;font-weight:400">(ball throw result)</span></h3>
+      <p style="font-size:12px;color:#666;margin-bottom:.75rem">Select which players form Team A for hole 1:</p>
+      <div id="pairing-select"></div>
+    </div>
+    <div class="card">
+      <h3>Bet</h3>
+      <div class="row">
+        <div><label>$ per point</label><input type="number" id="bet-amount" value="1" min="1"></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="startGame()">Start Round &#9654;</button>
+  </div>
+
+  <!-- SCORING -->
+  <div class="screen" id="screen-scoring">
+    <div class="hole-nav">
+      <button class="btn btn-sm" onclick="prevHole()">&#8592; Prev</button>
+      <span id="hole-label">Hole 1</span>
+      <button class="btn btn-sm" onclick="nextHole()">Next &#8594;</button>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="goSummary()">Summary</button>
+    </div>
+    <div class="card" id="hole-info-card"></div>
+    <div class="card" id="score-entry-card"></div>
+    <div class="card" id="hole-result-card"></div>
+    <div class="card" id="running-tally-card"></div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="screen" id="screen-summary">
+    <div id="summary-content"></div>
+  </div>
+</div>
+
+<script>
+const PAR=[4,5,5,4,4,3,4,4,3,4,4,3,4,5,3,4,4,5];
+const HCP_INDEX=[4,2,10,6,8,16,12,14,18,11,1,17,3,5,15,9,13,7];
+
+let players=[{name:'',hcp:''},{name:'',hcp:''},{name:'',hcp:''},{name:'',hcp:''}];
+let hole1PairingAB=[0,1];
+let bet=1;
+let scores=Array.from({length:18},()=>[null,null,null,null]);
+let currentHole=0;
+let strokesPerPlayer=[];
+
+function buildSetup(){
+  const pi=document.getElementById('player-inputs');
+  pi.innerHTML='';
+  players.forEach((p,i)=>{
+    pi.innerHTML+=`<div class="row" style="margin-bottom:6px">
+      <div><label>Player ${i+1} name</label><input type="text" value="${p.name}" oninput="players[${i}].name=this.value;rebuildPairingUI()" placeholder="Player ${i+1}"></div>
+      <div><label>Handicap index (optional)</label><input type="number" value="${p.hcp}" oninput="players[${i}].hcp=this.value" placeholder="e.g. 18" min="0" max="54"></div>
+    </div>`;
+  });
+  rebuildPairingUI();
+}
+
+function rebuildPairingUI(){
+  const ps=document.getElementById('pairing-select');
+  if(!ps)return;
+  const names=players.map((p,i)=>p.name||`P${i+1}`);
+  const combos=[[0,1],[0,2],[0,3]];
+  const partners={'0,1':[2,3],'0,2':[1,3],'0,3':[1,2]};
+  ps.innerHTML=combos.map(([a,b])=>{
+    const [c,d]=partners[`${a},${b}`];
+    const sel=JSON.stringify(hole1PairingAB)===JSON.stringify([a,b]);
+    return `<button class="pair-btn ${sel?'selected':''}" onclick="selectPairing(${a},${b})">
+      <span class="tag tag-a">A</span> ${names[a]} + ${names[b]} &nbsp;vs&nbsp; <span class="tag tag-b">B</span> ${names[c]} + ${names[d]}
+    </button>`;
+  }).join('');
+}
+
+function selectPairing(a,b){hole1PairingAB=[a,b];rebuildPairingUI();}
+
+function getStrokesPerHole(hcpIndex){
+  if(!hcpIndex||isNaN(hcpIndex))return Array(18).fill(0);
+  const strokes=Array(18).fill(0);
+  let remaining=Math.round(parseFloat(hcpIndex));
+  const sorted=[...HCP_INDEX].map((h,i)=>({h,i})).sort((a,b)=>a.h-b.h);
+  let pass=0;
+  while(remaining>0){strokes[sorted[pass%18].i]++;remaining--;pass++;}
+  return strokes;
+}
+
+function getPairing(holeIdx){
+  if(holeIdx===0){
+    const[a,b]=hole1PairingAB;
+    const rest=[0,1,2,3].filter(x=>!hole1PairingAB.includes(x));
+    return{teamA:[a,b],teamB:[rest[0],rest[1]]};
+  }
+  const nets=players.map((_,pi)=>{
+    let total=0;
+    for(let h=0;h<holeIdx;h++){const s=scores[h][pi];if(s!==null)total+=s-strokesPerPlayer[pi][h];}
+    return{pi,total};
+  });
+  nets.sort((a,b)=>a.total-b.total);
+  const ranked=nets.map(n=>n.pi);
+  return{teamA:[ranked[0],ranked[3]],teamB:[ranked[1],ranked[2]]};
+}
+
+function calcHoleResult(holeIdx){
+  const{teamA,teamB}=getPairing(holeIdx);
+  const par=PAR[holeIdx];
+  const getNet=(pi)=>{const s=scores[holeIdx][pi];if(s===null)return null;return s-strokesPerPlayer[pi][holeIdx];};
+  const nA=[getNet(teamA[0]),getNet(teamA[1])];
+  const nB=[getNet(teamB[0]),getNet(teamB[1])];
+  if(nA.includes(null)||nB.includes(null))return null;
+  const vegasA=parseInt(`${Math.min(...nA)}${Math.max(...nA)}`);
+  const vegasB=parseInt(`${Math.min(...nB)}${Math.max(...nB)}`);
+  if(vegasA===vegasB)return{winner:'tie',vegasA,vegasB,points:0,teamA,teamB,breakdown:[]};
+  const winTeam=vegasA<vegasB?'A':'B';
+  const winNets=winTeam==='A'?nA:nB;
+  const relScores=winNets.map(n=>n-par);
+  let points=5;
+  let breakdown=[];
+  relScores.forEach(r=>{
+    if(r<=-2){points+=20;breakdown.push('Eagle +20');}
+    else if(r===-1){points+=10;breakdown.push('Birdie +10');}
+  });
+  points=Math.ceil(points/5)*5;
+  return{winner:winTeam,vegasA,vegasB,points,teamA,teamB,breakdown};
+}
+
+function getCumulativePoints(){
+  let ptA=0,ptB=0;
+  for(let h=0;h<18;h++){
+    const r=calcHoleResult(h);
+    if(!r||r.winner==='tie')continue;
+    if(r.winner==='A')ptA+=r.points;else ptB+=r.points;
+  }
+  return{ptA,ptB};
+}
+
+function startGame(){
+  bet=parseFloat(document.getElementById('bet-amount').value)||1;
+  strokesPerPlayer=players.map(p=>getStrokesPerHole(p.hcp));
+  document.getElementById('top-nav').style.display='flex';
+  goScoring();
+}
+
+function goSetup(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-setup').classList.add('active');
+  document.getElementById('screen-title').textContent='Vegas Golf — SAFRA';
+}
+
+function goScoring(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-scoring').classList.add('active');
+  renderHole();
+}
+
+function goSummary(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-summary').classList.add('active');
+  renderSummary();
+}
+
+function prevHole(){if(currentHole>0){currentHole--;renderHole();}}
+function nextHole(){if(currentHole<17){currentHole++;renderHole();}}
+function pName(i){return players[i].name||`Player ${i+1}`;}
+
+function renderHole(){
+  const h=currentHole;
+  const par=PAR[h];
+  const hcpIdx=HCP_INDEX[h];
+  const{teamA,teamB}=getPairing(h);
+  document.getElementById('hole-label').textContent=`Hole ${h+1} / 18`;
+  document.getElementById('screen-title').textContent=`Hole ${h+1} — Par ${par}`;
+  document.getElementById('hole-info-card').innerHTML=`
+    <div class="row3">
+      <div><div class="section-title">Hole</div><div class="stat-val">${h+1}</div></div>
+      <div><div class="section-title">Par</div><div class="stat-val">${par}</div></div>
+      <div><div class="section-title">Stroke Index</div><div class="stat-val">${hcpIdx}</div></div>
+    </div>
+    <div style="margin-top:.75rem;display:flex;gap:16px;flex-wrap:wrap;font-size:14px">
+      <div><span class="tag tag-a">A</span> ${pName(teamA[0])} + ${pName(teamA[1])}</div>
+      <div><span class="tag tag-b">B</span> ${pName(teamB[0])} + ${pName(teamB[1])}</div>
+    </div>`;
+  const allPlayers=[...teamA.map(i=>({pi:i,team:'A'})),...teamB.map(i=>({pi:i,team:'B'}))];
+  let scoreHTML=`<h3 style="margin-bottom:.75rem">Enter scores</h3>`;
+  allPlayers.forEach(({pi,team})=>{
+    const strokes=strokesPerPlayer[pi][h];
+    const netLabel=strokes>0?`<span style="font-size:11px;color:#166534;margin-left:4px">-${strokes} stroke${strokes>1?'s':''}</span>`:'';
+    scoreHTML+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span class="tag ${team==='A'?'tag-a':'tag-b'}">${team}</span>
+      <span style="font-size:14px;min-width:100px">${pName(pi)}${netLabel}</span>
+      <input class="score-input" type="number" min="1" max="15" value="${scores[h][pi]!==null?scores[h][pi]:''}" placeholder="${par}" oninput="scores[${h}][${pi}]=this.value?parseInt(this.value):null;renderHoleResult();renderRunningTally()">
+    </div>`;
+  });
+  document.getElementById('score-entry-card').innerHTML=scoreHTML;
+  renderHoleResult();
+  renderRunningTally();
+}
+
+function renderHoleResult(){
+  const h=currentHole;
+  const r=calcHoleResult(h);
+  const card=document.getElementById('hole-result-card');
+  if(!r){card.innerHTML=`<p style="color:#888;font-size:13px">Enter all 4 scores to see result</p>`;return;}
+  const{winner,vegasA,vegasB,points,teamA,teamB,breakdown}=r;
+  const winnerLabel=winner==='tie'?'Tie':`Team ${winner} wins`;
+  const ptText=winner==='tie'?'':`+${points} pts`;
+  const breakText=breakdown&&breakdown.length?`<div style="font-size:12px;color:#166534;margin-top:4px">${breakdown.join(', ')}</div>`:'';
+  card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <div>
+      <div class="section-title">Vegas numbers</div>
+      <div style="display:flex;gap:16px;margin-top:4px">
+        <div><span class="tag tag-a">A</span> <span class="vegas-num team-a-color">${vegasA}</span></div>
+        <div><span class="tag tag-b">B</span> <span class="vegas-num team-b-color">${vegasB}</span></div>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:15px;font-weight:600;color:${winner==='tie'?'#888':'#166534'}">${winnerLabel} ${ptText}</div>
+      ${breakText}
+    </div>
+  </div>`;
+}
+
+function renderRunningTally(){
+  const{ptA,ptB}=getCumulativePoints();
+  const diff=Math.abs(ptA-ptB);
+  const leader=ptA>ptB?'A':ptB>ptA?'B':'Tied';
+  document.getElementById('running-tally-card').innerHTML=`
+    <div class="section-title">Running tally</div>
+    <div style="display:flex;gap:20px;align-items:baseline;flex-wrap:wrap">
+      <div style="font-size:14px"><span class="tag tag-a">A</span> <strong>${ptA}</strong> pts</div>
+      <div style="font-size:14px"><span class="tag tag-b">B</span> <strong>${ptB}</strong> pts</div>
+      <div style="font-size:13px;color:${leader==='Tied'?'#888':'#166534'}">
+        ${leader==='Tied'?'All square':`Team ${leader} leads by ${diff} pts ($${(diff*bet).toFixed(0)})`}
+      </div>
+    </div>`;
+}
+
+function renderSummary(){
+  const{ptA,ptB}=getCumulativePoints();
+  const diff=Math.abs(ptA-ptB);
+  const winner=ptA>ptB?'A':ptB>ptA?'B':null;
+  const payout=(diff*bet).toFixed(0);
+  let rows='';
+  for(let h=0;h<18;h++){
+    const r=calcHoleResult(h);
+    const{teamA,teamB}=getPairing(h);
+    const namesA=teamA.map(pName).join(' + ');
+    const namesB=teamB.map(pName).join(' + ');
+    const scored=scores[h].every(s=>s!==null);
+    let resultCell='';
+    if(scored&&r){
+      if(r.winner==='tie') resultCell=`<span class="tie-label">Tie</span>`;
+      else resultCell=`<span class="win-label">${r.winner==='A'?'A':'B'} +${r.points}</span>`;
+    }
+    rows+=`<tr>
+      <td style="padding:5px 6px;font-weight:600">${h+1}</td>
+      <td style="padding:5px 6px">${PAR[h]}</td>
+      <td style="padding:5px 6px;font-size:11px"><span class="tag tag-a">A</span> ${namesA}</td>
+      <td style="padding:5px 6px;font-size:11px"><span class="tag tag-b">B</span> ${namesB}</td>
+      <td style="padding:5px 6px;text-align:center">${scored&&r?`<span class="tag tag-a">${r.vegasA}</span>`:'—'}</td>
+      <td style="padding:5px 6px;text-align:center">${scored&&r?`<span class="tag tag-b">${r.vegasB}</span>`:'—'}</td>
+      <td style="padding:5px 6px;text-align:right">${resultCell}</td>
+    </tr>`;
+  }
+  document.getElementById('summary-content').innerHTML=`
+    <div class="${winner?'payout-box':'card'}" style="${!winner?'text-align:center':''}">
+      ${winner?`
+        <div style="font-size:13px;opacity:.8;margin-bottom:4px">Team ${winner} wins</div>
+        <div class="amount">$${payout}</div>
+        <div class="sublabel">Team A: ${ptA} pts &nbsp;|&nbsp; Team B: ${ptB} pts &nbsp;|&nbsp; Diff: ${diff} pts × $${bet}</div>
+      `:`<div style="font-size:17px;font-weight:600">All square — no payout</div><div style="font-size:13px;color:#666;margin-top:4px">Team A: ${ptA} pts | Team B: ${ptB} pts</div>`}
+    </div>
+    <div class="card" style="overflow-x:auto">
+      <table class="summary-table" style="min-width:480px">
+        <thead><tr>
+          <th>Hole</th><th>Par</th><th>Team A</th><th>Team B</th>
+          <th style="text-align:center">Vegas A</th><th style="text-align:center">Vegas B</th><th style="text-align:right">Result</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr>
+          <td colspan="4" style="padding:8px 6px">Total (18 holes)</td>
+          <td style="padding:8px 6px;text-align:center;color:#1e40af">${ptA} pts</td>
+          <td style="padding:8px 6px;text-align:center;color:#854d0e">${ptB} pts</td>
+          <td style="padding:8px 6px;text-align:right">${winner?`<span class="win-label">Team ${winner} +${diff}</span>`:'<span class="tie-label">Tie</span>'}</td>
+        </tr></tfoot>
+      </table>
+    </div>
+    <button class="btn" style="width:100%;margin-top:.5rem" onclick="goScoring()">&#8592; Back to Scorecard</button>`;
+}
+
+buildSetup();
+</script>
+</body>
+</html>
